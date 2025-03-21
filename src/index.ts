@@ -3,8 +3,9 @@ import express from "express";
 import cors from "cors";
 import connectToDatabase from "./config/db";
 import { APP_ORIGIN, NODE_ENV, PORT } from "./constants/env";
-import errorHandler from './middlewares/errorHandler'
+import errorHandler from "./middlewares/errorHandler";
 import cookieParser from "cookie-parser";
+import authRoutes from "./routes/auth.route";
 
 const app = express();
 
@@ -19,13 +20,15 @@ app.use(
 );
 app.use(cookieParser());
 
-app.get("/", (req, res) => {
-  res.send(200).json({
+app.get("/", (req, res, next) => {
+  res.json({
     status: "healthy",
   });
 });
 
-app.use(errorHandler)
+app.use("/auth", authRoutes);
+
+app.use(errorHandler);
 
 app.listen(PORT, async () => {
   console.log(
