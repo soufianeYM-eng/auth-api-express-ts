@@ -1,6 +1,5 @@
-export interface AddUser {
+export interface CreateUserParams {
   email: string;
   password: string;
-  confirmPassword: string;
   userAgent?: string;
 }
