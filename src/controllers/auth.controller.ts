@@ -1,5 +1,8 @@
 import { z } from "zod";
 import catchErrors from "../utils/catchErrors";
+import { createAccount } from "../services/auth.service";
+import HttpStatus from "../constants/httpStatus";
+import { setAuthCookies } from "../utils/cookies";
 
 const registerSchema = z
   .object({
@@ -14,12 +17,15 @@ const registerSchema = z
   });
 
 export const registerHandler = catchErrors(async (req, res) => {
-  console.log('Inside controller')
+  console.log("Inside controller");
   // validate request
   const request = registerSchema.parse({
     ...req.body,
     userAgent: req.headers["user-agent"],
   });
   // call service
+  const { user, accessToken, refreshToken } = await createAccount(request);
+
   //return response
+  setAuthCookies({ res, accessToken, refreshToken }).status(HttpStatus.CREATED).json(user);
 });
