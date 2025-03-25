@@ -16,6 +16,7 @@ export const createAccount = async (data: CreateUserParams) => {
   if (existingUser) {
     throw new Error("User already exists");
   }
+
   // create user
   const user = await UserModel.create({
     email: data.email,
