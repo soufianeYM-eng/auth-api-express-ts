@@ -6,6 +6,8 @@ import VerificationCodeModel from "../models/verificationCode.model";
 import { CreateUserParams } from "../types/auth.types";
 import VerificationCodeType from "../types/verificationCode.types";
 import { oneYearFromNow } from "../utils/dates";
+import appAssert from "../utils/appAssert";
+import HttpStatus from "../constants/httpStatus";
 
 export const createAccount = async (data: CreateUserParams) => {
   // verify existing user doesn't exist
@@ -13,9 +15,7 @@ export const createAccount = async (data: CreateUserParams) => {
     email: data.email,
   });
 
-  if (existingUser) {
-    throw new Error("User already exists");
-  }
+  appAssert(!existingUser, HttpStatus.CONFLICT, "Email already in use!");
 
   // create user
   const user = await UserModel.create({
@@ -55,7 +55,7 @@ export const createAccount = async (data: CreateUserParams) => {
 
   // return user & tokens
   return {
-    user,
+    user: user.omitPassword(),
     accessToken,
     refreshToken,
   };
