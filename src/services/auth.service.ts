@@ -3,7 +3,7 @@ import jwt from "jsonwebtoken";
 import SessionModel from "../models/session.model";
 import UserModel from "../models/user.model";
 import VerificationCodeModel from "../models/verificationCode.model";
-import { CreateUserParams } from "../types/auth.types";
+import { CreateUserParams, LoginParams } from "../types/auth.types";
 import VerificationCodeType from "../types/verificationCode.types";
 import { oneYearFromNow } from "../utils/dates";
 import appAssert from "../utils/appAssert";
@@ -59,4 +59,16 @@ export const createAccount = async (data: CreateUserParams) => {
     accessToken,
     refreshToken,
   };
+};
+
+export const login = async (data: LoginParams) => {
+  // Check if user exists
+  const existingUser = await UserModel.exists({
+    email: data.email,
+  });
+
+  appAssert(!existingUser, HttpStatus.BAD_REQUEST, 'No user exist with this email!')
+
+  // Compare passwords
+
 };
