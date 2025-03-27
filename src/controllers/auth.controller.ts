@@ -5,6 +5,7 @@ import { clearAuthCookies, setAuthCookies } from "../utils/cookies";
 import { registerSchema, loginSchema } from "../schemas";
 import { verifyToken } from "../utils/jwt";
 import SessionModel from "../models/session.model";
+import appAssert from "../utils/appAssert";
 
 export const registerHandler = catchErrors(async (req, res) => {
   // validate request
@@ -46,5 +47,7 @@ export const logoutHandler = catchErrors(async (req, res) => {
     clearAuthCookies(res).status(HttpStatus.OK).json({
       message: "Logout successful",
     });
+  } else {
+    appAssert(payload, HttpStatus.BAD_REQUEST, "Invalid Token!")
   }
 });
