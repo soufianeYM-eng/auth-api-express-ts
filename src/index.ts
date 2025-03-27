@@ -1,11 +1,13 @@
 import "dotenv/config";
 import express from "express";
 import cors from "cors";
+import swaggerUi from "swagger-ui-express";
 import connectToDatabase from "./config/db";
 import { APP_ORIGIN, NODE_ENV, PORT } from "./constants/env";
 import errorHandler from "./middlewares/errorHandler";
 import cookieParser from "cookie-parser";
 import authRoutes from "./routes/auth.route";
+import * as swaggerDocument from '../swagger-output.json';
 
 const app = express();
 
@@ -29,6 +31,8 @@ app.get("/", (req, res, next) => {
 app.use("/auth", authRoutes);
 
 app.use(errorHandler);
+
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 
 app.listen(PORT, async () => {
   console.log(
