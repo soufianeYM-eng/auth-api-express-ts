@@ -1,7 +1,16 @@
 import catchErrors from "../utils/catchErrors";
-import { createAccount, loginUser } from "../services/auth.service";
+import {
+  createAccount,
+  loginUser,
+  refreshUserAccessToken,
+} from "../services/auth.service";
 import HttpStatus from "../constants/httpStatus";
-import { clearAuthCookies, setAuthCookies } from "../utils/cookies";
+import {
+  clearAuthCookies,
+  getAccessTokenCookieOptions,
+  getRefreshTokenCookieOptions,
+  setAuthCookies,
+} from "../utils/cookies";
 import { registerSchema, loginSchema } from "../schemas";
 import { verifyToken } from "../utils/jwt";
 import SessionModel from "../models/session.model";
@@ -40,14 +49,33 @@ export const loginHandler = catchErrors(async (req, res) => {
 });
 
 export const logoutHandler = catchErrors(async (req, res) => {
-  const accessToken = req.cookies.accessToken;
-  const { payload } = verifyToken(accessToken);
+  const accessToken = req.cookies.accessToken as string | undefined;
+  const { payload } = verifyToken(accessToken || "");
   if (payload) {
     await SessionModel.findByIdAndDelete(payload.sessionId);
     clearAuthCookies(res).status(HttpStatus.OK).json({
       message: "Logout successful",
     });
   } else {
-    appAssert(payload, HttpStatus.BAD_REQUEST, "Invalid Token!")
+    appAssert(payload, HttpStatus.BAD_REQUEST, "Invalid Token!");
   }
+});
+
+export const refreshHandler = catchErrors(async (req, res) => {
+  const oldRefreshToken = req.cookies.refreshToken as string | undefined;
+
+  appAssert(oldRefreshToken, HttpStatus.UNAUTHORIZED, "Missing refresh token");
+
+  // call auth service
+  const { accessToken, newRefreshToken: refreshToken } =
+    await refreshUserAccessToken(oldRefreshToken);
+
+  if (refreshToken) {
+    res.cookie("refreshToken", refreshToken, getRefreshTokenCookieOptions());
+  }
+
+  res
+    .status(HttpStatus.OK)
+    .cookie("accessToken", accessToken, getAccessTokenCookieOptions())
+    .json({ message: "Access token refreshed!" });
 });

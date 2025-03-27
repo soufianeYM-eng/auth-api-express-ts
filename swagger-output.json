@@ -40,6 +40,16 @@
           }
         }
       }
+    },
+    "/refresh": {
+      "get": {
+        "description": "",
+        "responses": {
+          "default": {
+            "description": ""
+          }
+        }
+      }
     }
   }
 }
