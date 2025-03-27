@@ -40,7 +40,7 @@ export const createAccount = async (data: CreateUserParams) => {
 
   // sign access token & refresh token
   const refreshToken = jwt.sign(
-    { userId: user._id, sessionId: session._id },
+    { sessionId: session._id },
     JWT_REFRESH_SECRET,
     {
       audience: ["user"],
@@ -48,7 +48,7 @@ export const createAccount = async (data: CreateUserParams) => {
     }
   );
 
-  const accessToken = jwt.sign({ sessionId: session._id }, JWT_SECRET, {
+  const accessToken = jwt.sign({ userId: user._id, sessionId: session._id }, JWT_SECRET, {
     audience: ["user"],
     expiresIn: "15m",
   });
@@ -61,14 +61,47 @@ export const createAccount = async (data: CreateUserParams) => {
   };
 };
 
-export const login = async (data: LoginParams) => {
+export const loginUser = async ({ email, password, userAgent }: LoginParams) => {
   // Check if user exists
-  const existingUser = await UserModel.exists({
-    email: data.email,
+  const user = await UserModel.findOne({
+    email,
   });
 
-  appAssert(!existingUser, HttpStatus.BAD_REQUEST, 'No user exist with this email!')
+  appAssert(user, HttpStatus.UNAUTHORIZED, 'Invalid email or password')
 
   // Compare passwords
+  const isValid = await user.comparePassword(password)
 
+  const userId = user._id;
+  // Create a session
+  const session = await SessionModel.create({
+    userId,
+    userAgent
+  })
+
+  const sessionInfo = {
+    sessionId: session._id
+  }
+
+  // sign access token & refresh token
+  const refreshToken = jwt.sign(
+    sessionInfo,
+    JWT_REFRESH_SECRET,
+    {
+      audience: ["user"],
+      expiresIn: "30d",
+    }
+  );
+
+  const accessToken = jwt.sign({ userId: user._id, ...sessionInfo }, JWT_SECRET, {
+    audience: ["user"],
+    expiresIn: "15m",
+  });
+
+  // return user & tokens
+  return {
+    user: user.omitPassword(),
+    accessToken,
+    refreshToken,
+  };
 };

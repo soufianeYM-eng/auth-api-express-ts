@@ -7,4 +7,5 @@ export interface CreateUserParams {
 export interface LoginParams {
   email: string;
   password: string;
+  userAgent?: string;
 }

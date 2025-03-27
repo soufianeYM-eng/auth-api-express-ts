@@ -1,11 +1,9 @@
 import { z } from "zod";
+import loginSchema from "./login.schema";
 
-const registerSchema = z
-  .object({
-    email: z.string().email().min(1).max(255),
-    password: z.string().min(6).max(255),
+const registerSchema = loginSchema
+  .extend({
     confirmPassword: z.string().min(6).max(255),
-    userAgent: z.string().optional(),
   })
   .refine((data) => data.password === data.confirmPassword, {
     message: "Passwords do not match",

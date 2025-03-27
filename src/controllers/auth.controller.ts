@@ -1,5 +1,5 @@
 import catchErrors from "../utils/catchErrors";
-import { createAccount } from "../services/auth.service";
+import { createAccount, loginUser } from "../services/auth.service";
 import HttpStatus from "../constants/httpStatus";
 import { setAuthCookies } from "../utils/cookies";
 import { registerSchema, loginSchema } from "../schemas";
@@ -22,7 +22,16 @@ export const registerHandler = catchErrors(async (req, res) => {
 
 export const loginHandler = catchErrors(async (req, res) => {
   // validate request
-  const request = loginSchema.parse(req.body);
+  const request = loginSchema.parse({
+    ...req.body,
+    userAgent: req.headers["user-agent"],
+  });
 
   // call auth service
+  const { accessToken, refreshToken } = await loginUser(request);
+
+  //return response
+  setAuthCookies({ res, accessToken, refreshToken })
+    .status(HttpStatus.CREATED)
+    .json({ message: "Login successful" });
 });
