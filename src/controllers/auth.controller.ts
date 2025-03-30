@@ -11,7 +11,11 @@ import {
   getRefreshTokenCookieOptions,
   setAuthCookies,
 } from "../utils/cookies";
-import { registerSchema, loginSchema } from "../schemas";
+import {
+  registerSchema,
+  loginSchema,
+  verificationCodeSchema,
+} from "../schemas";
 import { verifyToken } from "../utils/jwt";
 import SessionModel from "../models/session.model";
 import appAssert from "../utils/appAssert";
@@ -78,4 +82,8 @@ export const refreshHandler = catchErrors(async (req, res) => {
     .status(HttpStatus.OK)
     .cookie("accessToken", accessToken, getAccessTokenCookieOptions())
     .json({ message: "Access token refreshed!" });
+});
+
+export const verifyEmailHandler = catchErrors(async (req, res) => {
+  const verificationCode = verificationCodeSchema.parse(req.body);
 });
